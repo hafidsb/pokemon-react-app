@@ -1,24 +1,51 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react"
+import PokemonList from "./PokemonList"
+import Pagination from "./Pagination"
+import axios from "axios"
+
 
 function App() {
+  const [pokemons, setPokemons] = useState([])
+  const [currentPageUrl, setCurrentPageUrl] = useState('https://pokeapi.co/api/v2/pokemon')
+  const [nextPageUrl, setNextPageUrl] = useState()
+  const [previousPageUrl, setPreviousPageUrl] = useState()
+  const [loadingState, setLoadingState] = useState(true)
+
+  useEffect(() => {
+    setLoadingState(true)
+
+    let cancel
+    axios.get(currentPageUrl, {
+      cancelToken: new axios.CancelToken(c => cancel = c)
+    }).then(res => {
+      setLoadingState(false)
+      setPokemons(res.data.results.map(res => res.name))
+      setNextPageUrl(res.data.next)
+      setPreviousPageUrl(res.data.previous)
+    })
+
+    return () => cancel()
+  }, [currentPageUrl])
+
+  function goToNextPage() {
+    setCurrentPageUrl(nextPageUrl)
+  }
+
+  function getPreviousPage() {
+    setCurrentPageUrl(previousPageUrl)
+  }
+
+  if (loadingState) return "Loading ..."
+  console.log("next " + nextPageUrl)
+  console.log("prev " + previousPageUrl)
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <>
+      <PokemonList pokemons={pokemons} />
+      <Pagination 
+        goToPreviousPage={previousPageUrl ? getPreviousPage : null}
+        goToNextPage={nextPageUrl ? goToNextPage : null}
+      />
+    </>
   );
 }
 
