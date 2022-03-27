@@ -36,8 +36,7 @@ function App() {
   }
 
   if (loadingState) return "Loading ..."
-  console.log("next " + nextPageUrl)
-  console.log("prev " + previousPageUrl)
+
   return (
     <>
       <PokemonList pokemons={pokemons} />
